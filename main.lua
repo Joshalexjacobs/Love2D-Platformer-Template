@@ -1,6 +1,6 @@
 -- main.lua
 --[[DEBUG SETTINGS]]
-DEBUG = false
+DEBUG = true
 
 --[[BUMP INIT]]
 -- require bump.lua
@@ -99,8 +99,10 @@ end
 --[[LOVE DRAW]]
 function love.draw()
   drawBlocks()
-  love.graphics.print("Platformer Template", 0, 0)
   love.graphics.rectangle("fill", player.x, player.y, player.w, player.h)
-  love.graphics.print("X: " .. tostring(player.x), 0, 15)
-  love.graphics.print("Y: " .. tostring(player.y), 0, 30)
+  if DEBUG then
+    love.graphics.print("Platformer Template", 0, 0)
+    love.graphics.print("X: " .. tostring(player.x), 0, 15)
+    love.graphics.print("Y: " .. tostring(player.y), 0, 30)
+  end
 end
