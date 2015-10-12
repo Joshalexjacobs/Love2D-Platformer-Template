@@ -24,6 +24,14 @@ local function updatePlayer(dt)
     player.dx = -player.speed * dt
   end
 
+  local decel = 5
+
+  if love.keyboard.isDown("right") == false and player.dx > 0 then
+		player.dx = math.max((player.dx - decel * dt), 0)
+	elseif love.keyboard.isDown("left") == false and player.dx < 0 then
+		player.dx = math.min((player.dx + decel * dt), 0)
+  end
+
   -- this block locks in our velocity to maxVel
   local v = math.sqrt(player.dx^2 + player.dy^2)
   if v > maxVel then
