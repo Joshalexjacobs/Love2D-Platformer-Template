@@ -72,6 +72,8 @@ local function updatePlayer(dt)
     player.x, player.y, cols, len = world:move(player, player.x + player.dx, player.y + player.dy)
     if len > 0 and not player.isJumping then -- check if the play is colliding with the ground
       player.isGrounded = true
+    else
+      player.isGrounded = false
     end
   end
 end
