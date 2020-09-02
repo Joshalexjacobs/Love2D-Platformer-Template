@@ -18,17 +18,17 @@ jumpTimer = jumpTimerMax
 local function updatePlayer(dt)
   local gravity, damping, maxVel = 9.8, 0.5, 6.0
 
-  if love.keyboard.isDown('right') then
+  if love.keyboard.isDown('right') or love.keyboard.isDown('d') then
     player.dx = player.speed * dt
-  elseif love.keyboard.isDown('left') then
+  elseif love.keyboard.isDown('left') or love.keyboard.isDown('a') then
     player.dx = -player.speed * dt
   end
 
   local decel = 5
 
-  if love.keyboard.isDown("right") == false and player.dx > 0 then
+  if (love.keyboard.isDown("right") == false and love.keyboard.isDown('d') == false) and player.dx > 0 then
 		player.dx = math.max((player.dx - decel * dt), 0)
-	elseif love.keyboard.isDown("left") == false and player.dx < 0 then
+  elseif (love.keyboard.isDown("left") == false and love.keyboard.isDown('a') == false) and player.dx < 0 then
 		player.dx = math.min((player.dx + decel * dt), 0)
   end
 
@@ -46,14 +46,14 @@ local function updatePlayer(dt)
 
   jumpTimer = jumpTimer - (1 * dt) -- decrement jumpTimer
 
-  if love.keyboard.isDown(' ') and not player.isJumping and player.isGrounded then -- when the player hits jump
+  if (love.keyboard.isDown('space') or love.keyboard.isDown('up')) and not player.isJumping and player.isGrounded then -- when the player hits jump
     player.isJumping = true
     player.isGrounded = false
     player.dy = -player.initVel -- 6 is our initial velocity -- this is a temporary solution, will add initialvelocity later
     jumpTimer = jumpTimerMax
-  elseif love.keyboard.isDown(' ') and jumpTimer > 0 and player.isJumping then
+  elseif (love.keyboard.isDown('space') or love.keyboard.isDown('up')) and jumpTimer > 0 and player.isJumping then
     player.dy = player.dy + (-0.5)
-  elseif not love.keyboard.isDown(' ') and player.isJumping then -- if the player releases the jump button mid-jump...
+  elseif (not love.keyboard.isDown('space') and not love.keyboard.isDown('up')) and player.isJumping then -- if the player releases the jump button mid-jump...
     if player.dy < player.termVel then -- and if the player's velocity has reached the minimum velocity (minimum jump height)...
       player.dy = player.termVel -- terminate the jump
     end
@@ -70,8 +70,16 @@ local function updatePlayer(dt)
   if player.dx ~= 0 or player.dy ~= 0 then
     local cols
     player.x, player.y, cols, len = world:move(player, player.x + player.dx, player.y + player.dy)
-    if len > 0 and not player.isJumping then -- check if the play is colliding with the ground
-      player.isGrounded = true
+    if len > 0 and not player.isJumping then -- check if the play is colliding with something
+      for i=1, len do
+	    if cols[i].other.y + cols[i].other.h == player.y then
+          -- If the player **top** is colliding end the jump
+		  player.isGrounded = false
+		  player.isJumping = false
+		else
+		  player.isGrounded = true
+		end
+	  end
     else
       player.isGrounded = false
     end
@@ -98,7 +106,7 @@ function love.load(arg)
   world:add(player, player.x, player.y, player.w, player.h)
 
   addBlock(love.graphics.getWidth()/2 - 160, love.graphics.getHeight()/2, 320, 60)
-  addBlock(0, love.graphics.getHeight() - 25, 800, 160)
+  addBlock(0, love.graphics.getHeight() - 25, 2000, 200)
 end
 
 --[[LOVE UPDATE]]
@@ -106,12 +114,24 @@ function love.update(dt)
   updatePlayer(dt)
 end
 
+--[[LOVE KEYPRESS DETECTION]]
+function love.keypressed(keypressed)
+  -- Quit the game if you press escape
+  if keypressed == "escape" then love.event.quit() end
+  -- Toggle debug mode if you press \ or del
+  if keypressed == "\\" or keypressed == "delete" then
+    DEBUG = not DEBUG
+  end
+  -- Toggle fullscreen if you press F11
+  if keypressed == "f11" then love.window.setFullscreen(not love.window.getFullscreen()) end
+end
+
 --[[LOVE DRAW]]
 function love.draw()
   drawBlocks()
   love.graphics.rectangle("fill", player.x, player.y, player.w, player.h)
   if DEBUG then
-    love.graphics.print("Platformer Template", 0, 0)
+    love.graphics.print(love.timer.getFPS() .. " FPS", 0, 0)
     love.graphics.print("X: " .. tostring(player.x), 0, 15)
     love.graphics.print("Y: " .. tostring(player.y), 0, 30)
   end
