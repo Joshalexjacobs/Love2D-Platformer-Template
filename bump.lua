@@ -1,5 +1,5 @@
 local bump = {
-  _VERSION     = 'bump v3.1.5',
+  _VERSION     = 'bump v3.1.7',
   _URL         = 'https://github.com/kikito/bump.lua',
   _DESCRIPTION = 'A collision detection library for Lua',
   _LICENSE     = [[
@@ -155,7 +155,12 @@ local function rect_detectCollision(x1,y1,w1,h1, x2,y2,w2,h2, goalX, goalY)
     local ti1,ti2,nx1,ny1 = rect_getSegmentIntersectionIndices(x,y,w,h, 0,0,dx,dy, -math.huge, math.huge)
 
     -- item tunnels into other
-    if ti1 and ti1 < 1 and (0 < ti1 + DELTA or 0 == ti1 and ti2 > 0) then
+    if ti1
+    and ti1 < 1
+    and (abs(ti1 - ti2) >= DELTA) -- special case for rect going through another rect's corner
+    and (0 < ti1 + DELTA
+      or 0 == ti1 and ti2 > 0)
+    then
       ti, nx, ny = ti1, nx1, ny1
       overlaps   = false
     end
@@ -275,19 +280,17 @@ local slide = function(world, col, x,y,w,h, goalX, goalY, filter)
   goalY = goalY or y
 
   local tch, move  = col.touch, col.move
-  local sx, sy     = tch.x, tch.y
   if move.x ~= 0 or move.y ~= 0 then
-    if col.normal.x == 0 then
-      sx = goalX
+    if col.normal.x ~= 0 then
+      goalX = tch.x
     else
-      sy = goalY
+      goalY = tch.y
     end
   end
 
-  col.slide = {x = sx, y = sy}
+  col.slide = {x = goalX, y = goalY}
 
-  x,y          = tch.x, tch.y
-  goalX, goalY = sx, sy
+  x,y = tch.x, tch.y
   local cols, len  = world:project(col.item, x,y,w,h, goalX, goalY, filter)
   return goalX, goalY, cols, len
 end
@@ -538,6 +541,8 @@ end
 --- Query methods
 
 function World:queryRect(x,y,w,h, filter)
+
+  assertIsRect(x,y,w,h)
 
   local cl,ct,cw,ch = grid_toCellRect(self.cellSize, x,y,w,h)
   local dictItemsInCellRect = getDictItemsInCellRect(self, cl,ct,cw,ch)
