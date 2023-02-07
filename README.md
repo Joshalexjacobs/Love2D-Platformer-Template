@@ -4,4 +4,4 @@
 
 A platformer template created using Lua and Love2D that utilizes collision from [bump.lua](https://github.com/kikito/bump.lua).
 
-**[Download the Executable](https://drive.google.com/file/d/0B2tEJpz9c1gLVHpEbWptX2oyNnM/view?usp=sharing)**
+Check out the demo .exe in `example/Platformer Template.exe`
